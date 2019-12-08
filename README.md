@@ -11,3 +11,4 @@ A Google Apps Script for Robinhood. More to come later!
 * <https://developers.google.com/apps-script/guides/typescript>
 * <https://github.com/google/clasp/blob/master/docs/typescript.md>
 * <https://github.com/gsuitedevs/apps-script-oauth2>
+* <https://github.com/garycourt/uri-js/blob/master/rollup.config.js>
