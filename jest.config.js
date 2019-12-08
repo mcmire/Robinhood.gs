@@ -1,4 +1,5 @@
 module.exports = {
+  /*
   roots: ["<rootDir>/src", "<rootDir>/tests"],
   transform: {
     "\\.ts$": "ts-jest"
@@ -11,4 +12,5 @@ module.exports = {
       tsConfig: "tsconfig.test.json"
     }
   }
+  */
 };

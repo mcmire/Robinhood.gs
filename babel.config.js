@@ -1,3 +1,3 @@
 module.exports = {
-  //transforms: ["es3"]
+  plugins: ["lodash"]
 };

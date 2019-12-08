@@ -2,7 +2,7 @@
   "extends": "../tsconfig.common.json",
   "compilerOptions": {
     "outFile": "../build/tests/index.js",
-    "types": ["google-apps-script", "mocha"]
+    "types": ["google-apps-script", "mocha", "node"]
   },
   "include": [
     "./*.ts",
