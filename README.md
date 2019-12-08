@@ -1,6 +1,6 @@
 # robinhood.gs [![CI status badge][badge]][actions]
 
-[badge]: https://img.shields.io/github/workflow/status/mcmire/robinhood.gs/main
+[badge]: https://img.shields.io/github/workflow/status/mcmire/robinhood.gs/Robinhood.gs
 [actions]: https://github.com/mcmire/robinhood.gs/actions
 
 A Google Apps Script for Robinhood. More to come later!
