@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.common.json",
+  "compilerOptions": {
+    "outFile": "../build/src/Robinhood.js",
+    "rootDir": ".",
+    "types": ["google-apps-script"]
+  },
+  "include": [
+    "./*.ts",
+    "./**/*.ts"
+  ]
+}

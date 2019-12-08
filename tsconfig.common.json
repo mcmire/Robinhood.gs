@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "downlevelIteration": true,
+    "esModuleInterop": true,
+    "lib": ["es2017"],
+    "module": "none",
+    //"listEmittedFiles": true,
+    //"listFiles": true,
+    "noEmitOnError": true,
+    "noErrorTruncation": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true,
+    "rootDir": ".",
+    "strict": true,
+    "target": "es3"
+  }
+}
