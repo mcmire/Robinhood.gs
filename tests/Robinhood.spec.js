@@ -1,11 +1,11 @@
-const requireEntrypoint = require("./requireEntrypoint");
+const requireBundle = require("./requireBundle");
 
-const Robinhood = requireEntrypoint("../src");
+const Robinhood = requireBundle();
 
 describe("Robinhood", () => {
   describe(".foo", () => {
     it("does stuff", () => {
-      expect(Robinhood.foo()).toEqual(42);
+      expect(Robinhood.foo()).toEqual([4]);
     });
   });
 });

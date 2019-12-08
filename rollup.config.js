@@ -1,8 +1,8 @@
-import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
-import babel from "rollup-plugin-babel";
+const nodeResolve = require("@rollup/plugin-node-resolve");
+const commonjs = require("rollup-plugin-commonjs");
+const babel = require("rollup-plugin-babel");
 
-export default {
+module.exports = {
   input: "src/index.js",
   output: {
     file: "build/Robinhood.js",
@@ -10,24 +10,5 @@ export default {
     name: "Robinhood",
     banner: "/* This is the banner we want */"
   },
-  plugins: [
-    nodeResolve({
-      preferBuiltins: false
-    }),
-    babel({
-      exclude: "node_modules/**",
-      presets: [
-        [
-          "@babel/preset-env",
-          {
-            useBuiltIns: "usage",
-            modules: false,
-            corejs: 3,
-            ignoreBrowserslistConfig: true
-          }
-        ]
-      ]
-    }),
-    commonjs()
-  ]
+  plugins: [nodeResolve({ preferBuiltins: false }), babel(), commonjs()]
 };
