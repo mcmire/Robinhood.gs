@@ -34,5 +34,5 @@ by:
 
 ## Colophon
 
-© 2019 Elliot Winkler (<elliot.winkler@gmail.com>), eeleased under the [MIT
+© 2019 Elliot Winkler (<elliot.winkler@gmail.com>), released under the [MIT
 license](LICENSE.txt).
