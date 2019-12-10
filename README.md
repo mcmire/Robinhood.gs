@@ -5,6 +5,13 @@
 
 A Google Apps Script for Robinhood. More to come later!
 
+## Development
+
+* `bin/setup` to install dependencies
+* `npm run start-dev` to run the Rollup watcher
+* `npm run start-test` to run the Jest watcher
+* `npm run push` to deploy everything to Google Apps
+
 ## Thanks
 
 * <https://stackoverflow.com/a/40205612>
@@ -13,3 +20,4 @@ A Google Apps Script for Robinhood. More to come later!
 * <https://stackoverflow.com/questions/15682346/how-to-unit-test-google-apps-scripts#comment103963256_37056733>
 * <https://github.com/gsuitedevs/apps-script-oauth2>
 * <https://github.com/garycourt/uri-js/blob/master/rollup.config.js>
+* <https://stackoverflow.com/questions/25472665/watch-and-rerun-jest-js-tests>

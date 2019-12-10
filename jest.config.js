@@ -1,3 +1,4 @@
 module.exports = {
-  transform: {}
+  notify: true,
+  setupFiles: ["./tests/support/gasMocks.js"]
 };

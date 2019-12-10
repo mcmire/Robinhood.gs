@@ -4,11 +4,13 @@
   "description": "Google Apps Script for Robinhood",
   "main": "index.js",
   "scripts": {
+    "start-dev": "rollup -c --watch",
+    "start-test": "jest --watch",
     "prebuild": "rm -rf build",
     "build": "rollup -c",
     "postbuild": "cp ./appsscript.json build",
-    "push": "clasp push",
-    "test": "jest"
+    "test": "jest",
+    "push": "npm run build && clasp push"
   },
   "repository": {
     "type": "git",
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@ampproject/rollup-plugin-closure-compiler": "^0.13.0",
     "@babel/core": "^7.7.5",
+    "@babel/plugin-proposal-export-default-from": "^7.7.4",
     "@babel/preset-env": "^7.7.6",
     "@rollup/plugin-node-resolve": "^6.0.0",
     "babel-cli": "^6.26.0",
@@ -33,6 +36,9 @@
     "closure-webpack-plugin": "^2.0.1",
     "core-js": "^3.4.7",
     "google-closure-compiler": "^20191111.0.0",
+    "grunt": "^1.0.4",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-exec": "^3.0.0",
     "jest": "^24.9.0",
     "jest-diff": "^24.9.0",
     "prettier": "^1.19.1",
@@ -46,5 +52,7 @@
     "webpack-cli": "^3.3.10",
     "webpack-merge": "^4.2.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "is-plain-object": "^3.0.0"
+  }
 }

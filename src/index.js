@@ -1,10 +1,5 @@
-import iCanSeeYou from "./util.js";
+import robinhood from "./robinhood";
 
-const Robinhood = {
-  foo() {
-    const foo = iCanSeeYou() + 2;
-    return [foo];
-  }
-};
-
-export default Robinhood;
+export function foo() {
+  return robinhood;
+}

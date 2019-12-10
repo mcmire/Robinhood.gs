@@ -216,6 +216,13 @@ before you can run this script.
   fi
 }
 
+provision-gas() {
+  if ! [[ -f ~/.clasprc.json ]]; then
+    banner 'Authenticating with Google Apps'
+    clasp login
+  fi
+}
+
 run-provisions() {
   provision-node
 }
