@@ -78,6 +78,18 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
     return true;
   }
 
+  function concat(array1, array2) {
+    var finalArray = [];
+    each(array1, function (value) {
+      finalArray.push(value);
+    });
+    each(array2, function (value) {
+      finalArray.push(value);
+    });
+    return finalArray;
+  } // Copied from lodash
+
+
   function isArray(value) {
     return Object.prototype.toString.call(value) === "[object Array]";
   }
@@ -126,98 +138,151 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
 
   var BASE_URL = "https://api.robinhood.com";
 
-  function makePostRequest(pathOrUrl, _temp) {
-    var _ref = _temp === void 0 ? {} : _temp,
-        payload = _ref.payload,
-        rest = _objectWithoutPropertiesLoose(_ref, ["payload"]);
-
-    return makeRequest("post", pathOrUrl, Object.assign({
-      payload: JSON.stringify(payload)
-    }, rest));
-  } // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
-
-
-  function generateDeviceToken() {
-    var rands = [];
-
-    for (var i = 0; i < 16; i++) {
-      var r = Math.random();
-      var rand = 4294967296.0 * r;
-      rands.push(rand >> ((3 & i) << 3) & 255);
+  var RobinhoodClientHelp =
+  /*#__PURE__*/
+  function () {
+    function RobinhoodClientHelp(_ref) {
+      var UrlFetchApp = _ref.UrlFetchApp,
+          Utilities = _ref.Utilities;
+      this.UrlFetchApp = UrlFetchApp;
+      this.Utilities = Utilities;
     }
 
-    var id = "";
-    var hex = [];
+    var _proto = RobinhoodClientHelp.prototype;
 
-    for (var _i = 0; _i < 256; ++_i) {
-      hex.push(Number(_i + 256).toString(16).substring(1));
-    }
+    _proto.getResource = function getResource(pathOrUrl, accessToken) {
+      var _this = this;
 
-    for (var _i2 = 0; _i2 < 16; _i2++) {
-      id += hex[rands[_i2]];
-
-      if (_i2 == 3 || _i2 == 5 || _i2 == 7 || _i2 == 9) {
-        id += "-";
-      }
-    }
-
-    return id;
-  }
-
-  function makeRequest(method, pathOrUrl, _temp2) {
-    var _ref2 = _temp2 === void 0 ? {} : _temp2,
-        _ref2$headers = _ref2.headers,
-        headers = _ref2$headers === void 0 ? {} : _ref2$headers,
-        _ref2$errorMessage = _ref2.errorMessage,
-        errorMessage = _ref2$errorMessage === void 0 ? null : _ref2$errorMessage,
-        rest = _objectWithoutPropertiesLoose(_ref2, ["headers", "errorMessage"]);
-
-    method = method.toLowerCase();
-    var url = makeAbsoluteUrl(pathOrUrl);
-    var response = UrlFetchApp.fetch(url, Object.assign({
-      method: method,
-      headers: mergeObjects(headers, {
-        Accept: "application/json"
-      }),
-      muteHttpExceptions: true,
-      followRedirects: true
-    }, rest));
-    var status = response.getResponseCode();
-    var rawBody = response.getContentText();
-    var body = JSON.parse(rawBody);
-
-    if (errorMessage == null || status >= 200 && status < 300) {
-      return {
-        status: status,
-        body: body
+      var getAuthenticatedResource = function getAuthenticatedResource() {
+        return _this.makeGetRequest(pathOrUrl, {
+          headers: {
+            Authorization: "Bearer " + accessToken
+          },
+          errorMessage: "Could not fetch Robinhood resource."
+        });
       };
-    } else {
-      throw new Error(errorMessage + " (" + status + " " + method.toUpperCase() + " " + url + ": " + rawBody + ")");
-    }
-  }
 
-  function makeAbsoluteUrl(pathOrUrl) {
-    var regexp = new RegExp("^" + BASE_URL);
-    return regexp.exec(pathOrUrl) ? pathOrUrl : BASE_URL + pathOrUrl;
-  }
+      var response;
 
+      try {
+        response = getAuthenticatedResource();
+      } catch (e) {
+        this.Utilities.sleep(3000);
+        response = getAuthenticatedResource();
+      }
+
+      if (response.body["next"] != null) {
+        return concat(response.body["results"], this.getResource(response.body["next"], accessToken));
+      } else {
+        return response.body["results"];
+      }
+    };
+
+    _proto.makeGetRequest = function makeGetRequest(pathOrUrl, options) {
+      if (options === void 0) {
+        options = {};
+      }
+
+      return this._makeRequest("get", pathOrUrl, options);
+    };
+
+    _proto.makePostRequest = function makePostRequest(pathOrUrl, _temp) {
+      var _ref2 = _temp === void 0 ? {} : _temp,
+          payload = _ref2.payload,
+          rest = _objectWithoutPropertiesLoose(_ref2, ["payload"]);
+
+      return this._makeRequest("post", pathOrUrl, Object.assign({
+        payload: JSON.stringify(payload)
+      }, rest));
+    } // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
+    ;
+
+    _proto.generateDeviceToken = function generateDeviceToken() {
+      var rands = [];
+
+      for (var i = 0; i < 16; i++) {
+        var r = Math.random();
+        var rand = 4294967296.0 * r;
+        rands.push(rand >> ((3 & i) << 3) & 255);
+      }
+
+      var id = "";
+      var hex = [];
+
+      for (var _i = 0; _i < 256; ++_i) {
+        hex.push(Number(_i + 256).toString(16).substring(1));
+      }
+
+      for (var _i2 = 0; _i2 < 16; _i2++) {
+        id += hex[rands[_i2]];
+
+        if (_i2 == 3 || _i2 == 5 || _i2 == 7 || _i2 == 9) {
+          id += "-";
+        }
+      }
+
+      return id;
+    };
+
+    _proto._makeRequest = function _makeRequest(method, pathOrUrl, _temp2) {
+      var _ref3 = _temp2 === void 0 ? {} : _temp2,
+          _ref3$headers = _ref3.headers,
+          headers = _ref3$headers === void 0 ? {} : _ref3$headers,
+          _ref3$errorMessage = _ref3.errorMessage,
+          errorMessage = _ref3$errorMessage === void 0 ? null : _ref3$errorMessage,
+          rest = _objectWithoutPropertiesLoose(_ref3, ["headers", "errorMessage"]);
+
+      method = method.toLowerCase();
+
+      var url = this._makeAbsoluteUrl(pathOrUrl);
+
+      var response = this.UrlFetchApp.fetch(url, Object.assign({
+        method: method,
+        headers: mergeObjects(headers, {
+          Accept: "application/json"
+        }),
+        muteHttpExceptions: true,
+        followRedirects: true
+      }, rest));
+      var status = response.getResponseCode();
+      var rawBody = response.getContentText();
+      var body = JSON.parse(rawBody);
+
+      if (errorMessage == null || status >= 200 && status < 300) {
+        return {
+          status: status,
+          body: body
+        };
+      } else {
+        throw new Error(errorMessage + " (" + status + " " + method.toUpperCase() + " " + url + ": " + rawBody + ")");
+      }
+    };
+
+    _proto._makeAbsoluteUrl = function _makeAbsoluteUrl(pathOrUrl) {
+      var regexp = new RegExp("^" + BASE_URL);
+      return regexp.exec(pathOrUrl) ? pathOrUrl : BASE_URL + pathOrUrl;
+    };
+
+    return RobinhoodClientHelp;
+  }();
+
+  // Source: <https://github.com/Jamonek/Robinhood/issues/176#issuecomment-487310801>
   var CLIENT_ID = "c82SH0WZOsabOXGP2sxqcj34FxkvfnWRZBKlBjFS";
   var ONE_DAY = 60 * 60 * 24;
 
-  var RobinhoodApi =
+  var RobinhoodClient =
   /*#__PURE__*/
   function () {
-    function RobinhoodApi(_ref) {
-      var UrlFetchApp = _ref.UrlFetchApp;
-      this.UrlFetchApp = UrlFetchApp;
+    function RobinhoodClient(clientHelp) {
+      this.clientHelp = clientHelp;
     }
 
-    var _proto = RobinhoodApi.prototype;
+    var _proto = RobinhoodClient.prototype;
 
-    _proto.getAccessToken = function getAccessToken(deviceToken, username, password, _temp) {
-      var _ref2 = _temp === void 0 ? {} : _temp,
-          _ref2$challengeRespon = _ref2.challengeResponseId,
-          challengeResponseId = _ref2$challengeRespon === void 0 ? null : _ref2$challengeRespon;
+    _proto.getAccessToken = function getAccessToken(username, password, _temp) {
+      var _ref = _temp === void 0 ? {} : _temp,
+          _ref$challengeRespons = _ref.challengeResponseId,
+          challengeResponseId = _ref$challengeRespons === void 0 ? null : _ref$challengeRespons;
 
       var headers = {};
 
@@ -225,12 +290,12 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
         headers["X-Robinhood-Challenge-Response-ID"] = challengeResponseId;
       }
 
-      return makePostRequest("/oauth2/token/", {
+      return this.clientHelp.makePostRequest("/oauth2/token/", {
         headers: headers,
         payload: {
           challenge_type: "sms",
           client_id: CLIENT_ID,
-          device_token: generateDeviceToken(),
+          device_token: this.clientHelp.generateDeviceToken(),
           expires_in: ONE_DAY,
           grant_type: "password",
           password: password,
@@ -241,7 +306,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
     };
 
     _proto.respondToChallenge = function respondToChallenge(challengeId, smsCode) {
-      return makePostRequest("/challenge/" + challengeId + "/respond", {
+      return this.clientHelp.makePostRequest("/challenge/" + challengeId + "/respond", {
         payload: {
           response: smsCode
         },
@@ -249,7 +314,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
       });
     };
 
-    return RobinhoodApi;
+    return RobinhoodClient;
   }();
 
   var Controller =
@@ -263,11 +328,12 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
           CacheService = _ref$services.CacheService,
           SpreadsheetApp = _ref$services.SpreadsheetApp,
           UrlFetchApp = _ref$services.UrlFetchApp;
-      this.api = new RobinhoodApi({
+      var clientHelp = new RobinhoodClientHelp({
         services: {
           UrlFetchApp: UrlFetchApp
         }
       });
+      this.client = new RobinhoodClient(clientHelp);
       this.cache = CacheService.getScriptCache();
       this.ui = SpreadsheetApp.getUi();
     } // Source: <https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/authentication.py>
@@ -285,7 +351,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
     };
 
     _proto._getAccessToken = function _getAccessToken() {
-      var response = this.api.getAccessToken(this.credentials.username, this.credentials.password);
+      var response = this.client.getAccessToken(this.credentials.username, this.credentials.password);
       return this._handleAuthResponse(response.body);
     };
 
@@ -308,7 +374,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
 
       var message = isRetry ? "Hmm, that code wasn't correct. Please try again:" : "Enter your MFA code:";
       var mfaCode = this.ui.prompt(message);
-      var response = this.api.getAccessToken(this.credentials.username, this.credentials.password, {
+      var response = this.client.getAccessToken(this.credentials.username, this.credentials.password, {
         mfaCode: mfaCode
       });
 
@@ -326,7 +392,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
 
       var message = retry == null ? "You should have gotten a text from Robinhood. Enter the code that you see there:" : "Hmm, that code wasn't correct. You have " + retry.remainingAttempts + " more tries. Try another code?";
       var smsCode = this.ui.prompt(message);
-      var response = this.api.respondToChallenge(challengeId, smsCode);
+      var response = this.client.respondToChallenge(challengeId, smsCode);
       var data = response.body;
 
       if ("challenge" in data) {

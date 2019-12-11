@@ -1,6 +1,7 @@
 import { sliceObject } from "./util";
 
-import RobinhoodApi from "./RobinhoodApi";
+import RobinhoodClientHelp from "./RobinhoodClientHelp";
+import RobinhoodClient from "./RobinhoodClient";
 
 // TODO: Test this
 export default class Controller {
