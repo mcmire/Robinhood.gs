@@ -15,35 +15,66 @@ export default class Controller {
     this.ui = SpreadsheetApp.getUi();
   }
 
-  // Source: <https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/authentication.py>
-  connectToApi() {
-    if (this.authorization == null) {
-      this.authorization =
-        this.cache.get("authorization") || this._getAccessToken();
-    }
-  }
-
   getOrders() {
+    this._connectToApi();
     // ...
   }
 
+  // Source: <https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/authentication.py>
+  _connectToApi() {
+    if (this.authorization == null) {
+      // TODO: Instead of using cache, use the spreadsheet as the cache
+      // That way we can hold onto it infinitely
+      //
+      // The first time a request is made we might still want to refresh the
+      // access token anyway — but we can reuse the device token we generated
+      // last time, at least — then we cache the access token in the spreadsheet
+      // too
+      const cachedAuthorization = this.cache.get("authorization");
+
+      if (cachedAuthorization == null) {
+        const authorization = this._getAccessToken();
+        this.authorization = authorization;
+        this.cache.put("authorization", JSON.stringify(authorization));
+      } else {
+        this.authorization = JSON.parse(cachedAuthorization);
+      }
+    }
+  }
+
   _getAccessToken() {
+    const deviceToken = this.client.generateDeviceToken();
     const response = this.client.getAccessToken(
+      deviceToken,
       this.credentials.username,
       this.credentials.password
     );
-    return this._handleAuthResponse(response.body);
+    return this._handleAuthResponse(response.body, deviceToken);
   }
 
-  _handleAuthResponse(data) {
+  _handleAuthResponse(data, deviceToken) {
     if ("mfa_required" in data) {
-      return this._handleAuthResponse(this._authenticateUsingMfaCode());
-    } else if ("challenge" in data) {
       return this._handleAuthResponse(
-        this._authenticateUsingSmsCode(response.body["challenge"]["id"])
+        this._authenticateUsingMfaCode(),
+        deviceToken
       );
+    } else if ("challenge" in data) {
+      const challenge = data["challenge"];
+
+      if (challenge["status"] === "issued") {
+        return this._handleAuthResponse(
+          this._authenticateUsingSmsCode(response.body["challenge"]["id"]),
+          deviceToken
+        );
+      } else {
+        throw new Error("Couldn't connect to Robinhood API: Invalid response.");
+      }
     } else if ("access_token" in data) {
-      return [data["access_type"], data["access_token"]].join(" ");
+      return {
+        accessType: data["access_type"],
+        accessToken: data["access_token"],
+        deviceToken: deviceToken
+      };
     } else {
       throw new Error("Couldn't connect to Robinhood API: Invalid response.");
     }
@@ -77,17 +108,25 @@ export default class Controller {
     const data = response.body;
 
     if ("challenge" in data) {
-      const remainingAttempts = data["challenge"]["remaining_attempts"];
+      const challenge = data["challenge"];
 
-      if (remainingAttempts > 0) {
-        return this._authenticateUsingSmsCode(challengeId, {
-          remainingAttempts
-        });
+      if (challenge["status"] === "validated") {
+        return data;
       } else {
-        throw new Error("Couldn't connect to Robinhood API: Invalid SMS code.");
+        const remainingAttempts = challenge["remaining_attempts"];
+
+        if (remainingAttempts > 0) {
+          return this._authenticateUsingSmsCode(challengeId, {
+            remainingAttempts
+          });
+        } else {
+          throw new Error(
+            "Couldn't connect to Robinhood API: Invalid SMS code."
+          );
+        }
       }
     } else {
-      return data;
+      throw new Error("Couldn't connect to Robinhood API: Invalid response.");
     }
   }
 }

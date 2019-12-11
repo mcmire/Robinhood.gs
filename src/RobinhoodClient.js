@@ -7,7 +7,42 @@ export default class RobinhoodClient {
     this.clientHelp = clientHelp;
   }
 
-  getAccessToken(username, password, { challengeResponseId = null } = {}) {
+  // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
+  // TODO: Test
+  generateDeviceToken() {
+    const rands = [];
+    for (let i = 0; i < 16; i++) {
+      const r = Math.random();
+      const rand = 4294967296.0 * r;
+      rands.push((rand >> ((3 & i) << 3)) & 255);
+    }
+
+    let id = "";
+    const hex = [];
+    for (let i = 0; i < 256; ++i) {
+      hex.push(
+        Number(i + 256)
+          .toString(16)
+          .substring(1)
+      );
+    }
+
+    for (let i = 0; i < 16; i++) {
+      id += hex[rands[i]];
+      if (i == 3 || i == 5 || i == 7 || i == 9) {
+        id += "-";
+      }
+    }
+
+    return id;
+  }
+
+  getAccessToken(
+    deviceToken,
+    username,
+    password,
+    { challengeResponseId = null } = {}
+  ) {
     const headers = {};
 
     if (challengeResponseId != null) {
@@ -19,7 +54,7 @@ export default class RobinhoodClient {
       payload: {
         challenge_type: "sms",
         client_id: CLIENT_ID,
-        device_token: this.clientHelp.generateDeviceToken(),
+        device_token: deviceToken,
         expires_in: ONE_DAY,
         grant_type: "password",
         password: password,

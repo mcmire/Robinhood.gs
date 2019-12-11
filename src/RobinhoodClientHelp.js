@@ -45,35 +45,6 @@ export default class RobinhoodClientHelp {
     });
   }
 
-  // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
-  generateDeviceToken() {
-    const rands = [];
-    for (let i = 0; i < 16; i++) {
-      const r = Math.random();
-      const rand = 4294967296.0 * r;
-      rands.push((rand >> ((3 & i) << 3)) & 255);
-    }
-
-    let id = "";
-    const hex = [];
-    for (let i = 0; i < 256; ++i) {
-      hex.push(
-        Number(i + 256)
-          .toString(16)
-          .substring(1)
-      );
-    }
-
-    for (let i = 0; i < 16; i++) {
-      id += hex[rands[i]];
-      if (i == 3 || i == 5 || i == 7 || i == 9) {
-        id += "-";
-      }
-    }
-
-    return id;
-  }
-
   _makeRequest(
     method,
     pathOrUrl,

@@ -10,7 +10,11 @@ describe("RobinhoodClient", () => {
         });
         const robinhoodApi = new RobinhoodClient(clientHelp);
 
-        robinhoodApi.getAccessToken("some_username", "some_password");
+        robinhoodApi.getAccessToken(
+          "some_device_token",
+          "some_username",
+          "some_password"
+        );
 
         expect(clientHelp.makePostRequest).toHaveBeenCalledWith(
           "/oauth2/token/",
@@ -39,9 +43,14 @@ describe("RobinhoodClient", () => {
         });
         const robinhoodApi = new RobinhoodClient(clientHelp);
 
-        robinhoodApi.getAccessToken("some_username", "some_password", {
-          challengeResponseId: "abc123"
-        });
+        robinhoodApi.getAccessToken(
+          "some_device_token",
+          "some_username",
+          "some_password",
+          {
+            challengeResponseId: "abc123"
+          }
+        );
 
         expect(clientHelp.makePostRequest).toHaveBeenCalledWith(
           "/oauth2/token/",

@@ -9,7 +9,6 @@ const controller = new Controller({
 });
 
 export function ROBINHOOD_GET_ORDERS() {
-  controller.connectToApi();
   return controller.getOrders();
 }
 

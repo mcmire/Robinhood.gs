@@ -194,34 +194,6 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
       return this._makeRequest("post", pathOrUrl, Object.assign({
         payload: JSON.stringify(payload)
       }, rest));
-    } // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
-    ;
-
-    _proto.generateDeviceToken = function generateDeviceToken() {
-      var rands = [];
-
-      for (var i = 0; i < 16; i++) {
-        var r = Math.random();
-        var rand = 4294967296.0 * r;
-        rands.push(rand >> ((3 & i) << 3) & 255);
-      }
-
-      var id = "";
-      var hex = [];
-
-      for (var _i = 0; _i < 256; ++_i) {
-        hex.push(Number(_i + 256).toString(16).substring(1));
-      }
-
-      for (var _i2 = 0; _i2 < 16; _i2++) {
-        id += hex[rands[_i2]];
-
-        if (_i2 == 3 || _i2 == 5 || _i2 == 7 || _i2 == 9) {
-          id += "-";
-        }
-      }
-
-      return id;
     };
 
     _proto._makeRequest = function _makeRequest(method, pathOrUrl, _temp2) {
@@ -275,11 +247,40 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
   function () {
     function RobinhoodClient(clientHelp) {
       this.clientHelp = clientHelp;
-    }
+    } // Source: <https://github.com/aurbano/robinhood-node/issues/100#issuecomment-491666787>
+    // TODO: Test
+
 
     var _proto = RobinhoodClient.prototype;
 
-    _proto.getAccessToken = function getAccessToken(username, password, _temp) {
+    _proto.generateDeviceToken = function generateDeviceToken() {
+      var rands = [];
+
+      for (var i = 0; i < 16; i++) {
+        var r = Math.random();
+        var rand = 4294967296.0 * r;
+        rands.push(rand >> ((3 & i) << 3) & 255);
+      }
+
+      var id = "";
+      var hex = [];
+
+      for (var _i = 0; _i < 256; ++_i) {
+        hex.push(Number(_i + 256).toString(16).substring(1));
+      }
+
+      for (var _i2 = 0; _i2 < 16; _i2++) {
+        id += hex[rands[_i2]];
+
+        if (_i2 == 3 || _i2 == 5 || _i2 == 7 || _i2 == 9) {
+          id += "-";
+        }
+      }
+
+      return id;
+    };
+
+    _proto.getAccessToken = function getAccessToken(deviceToken, username, password, _temp) {
       var _ref = _temp === void 0 ? {} : _temp,
           _ref$challengeRespons = _ref.challengeResponseId,
           challengeResponseId = _ref$challengeRespons === void 0 ? null : _ref$challengeRespons;
@@ -295,7 +296,7 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
         payload: {
           challenge_type: "sms",
           client_id: CLIENT_ID,
-          device_token: this.clientHelp.generateDeviceToken(),
+          device_token: deviceToken,
           expires_in: ONE_DAY,
           grant_type: "password",
           password: password,
@@ -336,32 +337,61 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
       this.client = new RobinhoodClient(clientHelp);
       this.cache = CacheService.getScriptCache();
       this.ui = SpreadsheetApp.getUi();
-    } // Source: <https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/authentication.py>
-
+    }
 
     var _proto = Controller.prototype;
 
-    _proto.connectToApi = function connectToApi() {
+    _proto.getOrders = function getOrders() {
+      this._connectToApi(); // ...
+
+    } // Source: <https://github.com/jmfernandes/robin_stocks/blob/master/robin_stocks/authentication.py>
+    ;
+
+    _proto._connectToApi = function _connectToApi() {
       if (this.authorization == null) {
-        this.authorization = this.cache.get("authorization") || this._getAccessToken();
+        // TODO: Instead of using cache, use the spreadsheet as the cache
+        // That way we can hold onto it infinitely
+        //
+        // The first time a request is made we might still want to refresh the
+        // access token anyway — but we can reuse the device token we generated
+        // last time, at least — then we cache the access token in the spreadsheet
+        // too
+        var cachedAuthorization = this.cache.get("authorization");
+
+        if (cachedAuthorization == null) {
+          var authorization = this._getAccessToken();
+
+          this.authorization = authorization;
+          this.cache.put("authorization", JSON.stringify(authorization));
+        } else {
+          this.authorization = JSON.parse(cachedAuthorization);
+        }
       }
     };
 
-    _proto.getOrders = function getOrders() {// ...
-    };
-
     _proto._getAccessToken = function _getAccessToken() {
-      var response = this.client.getAccessToken(this.credentials.username, this.credentials.password);
-      return this._handleAuthResponse(response.body);
+      var deviceToken = this.client.generateDeviceToken();
+      var response = this.client.getAccessToken(deviceToken, this.credentials.username, this.credentials.password);
+      return this._handleAuthResponse(response.body, deviceToken);
     };
 
-    _proto._handleAuthResponse = function _handleAuthResponse(data) {
+    _proto._handleAuthResponse = function _handleAuthResponse(data, deviceToken) {
       if ("mfa_required" in data) {
-        return this._handleAuthResponse(this._authenticateUsingMfaCode());
+        return this._handleAuthResponse(this._authenticateUsingMfaCode(), deviceToken);
       } else if ("challenge" in data) {
-        return this._handleAuthResponse(this._authenticateUsingSmsCode(response.body["challenge"]["id"]));
+        var challenge = data["challenge"];
+
+        if (challenge["status"] === "issued") {
+          return this._handleAuthResponse(this._authenticateUsingSmsCode(response.body["challenge"]["id"]), deviceToken);
+        } else {
+          throw new Error("Couldn't connect to Robinhood API: Invalid response.");
+        }
       } else if ("access_token" in data) {
-        return [data["access_type"], data["access_token"]].join(" ");
+        return {
+          accessType: data["access_type"],
+          accessToken: data["access_token"],
+          deviceToken: deviceToken
+        };
       } else {
         throw new Error("Couldn't connect to Robinhood API: Invalid response.");
       }
@@ -396,17 +426,23 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
       var data = response.body;
 
       if ("challenge" in data) {
-        var remainingAttempts = data["challenge"]["remaining_attempts"];
+        var challenge = data["challenge"];
 
-        if (remainingAttempts > 0) {
-          return this._authenticateUsingSmsCode(challengeId, {
-            remainingAttempts: remainingAttempts
-          });
+        if (challenge["status"] === "validated") {
+          return data;
         } else {
-          throw new Error("Couldn't connect to Robinhood API: Invalid SMS code.");
+          var remainingAttempts = challenge["remaining_attempts"];
+
+          if (remainingAttempts > 0) {
+            return this._authenticateUsingSmsCode(challengeId, {
+              remainingAttempts: remainingAttempts
+            });
+          } else {
+            throw new Error("Couldn't connect to Robinhood API: Invalid SMS code.");
+          }
         }
       } else {
-        return data;
+        throw new Error("Couldn't connect to Robinhood API: Invalid response.");
       }
     };
 
@@ -425,7 +461,6 @@ window.ROBINHOOD_PASSWORD_ = "<redacted>";
     }
   });
   function ROBINHOOD_GET_ORDERS() {
-    controller.connectToApi();
     return controller.getOrders();
   }
   function onOpen() {// ...
