@@ -1,5 +1,18 @@
-import robinhood from "./robinhood";
+import Controller from "./Controller";
 
-export function foo() {
-  return robinhood;
+const controller = new Controller({
+  credentials: {
+    username: window.ROBINHOOD_USERNAME_,
+    password: window.ROBINHOOD_PASSWORD_
+  },
+  services: { CacheService, SpreadsheetApp, UrlFetchApp }
+});
+
+export function ROBINHOOD_GET_ORDERS() {
+  controller.connectToApi();
+  return controller.getOrders();
+}
+
+export function onOpen() {
+  // ...
 }

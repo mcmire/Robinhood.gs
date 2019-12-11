@@ -49,4 +49,16 @@ function mergeObjects(object1, object2) {
   return final;
 }
 
+/*
+function sliceObject(object, keys) {
+  const newObject = {};
+
+  each(keys, key => {
+    newObject[key] = object[key];
+  });
+
+  return newObject;
+}
+*/
+
 export { concat, each, isArray, isPlainObject, mergeObjects };

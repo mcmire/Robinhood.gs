@@ -2,6 +2,8 @@ module.exports = api => {
   const isTest = api.env("test");
   return {
     exclude: "node_modules/**",
+    compact: false,
+    //retainLines: true,
     presets: [
       [
         "@babel/preset-env",
