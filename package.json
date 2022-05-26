@@ -36,7 +36,7 @@
     "closure-webpack-plugin": "^2.0.1",
     "core-js": "^3.4.7",
     "google-closure-compiler": "^20191111.0.0",
-    "grunt": "^1.5.2",
+    "grunt": "^1.5.3",
     "grunt-contrib-watch": "^1.1.0",
     "grunt-exec": "^3.0.0",
     "jest": "^24.9.0",
