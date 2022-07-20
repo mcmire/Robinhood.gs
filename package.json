@@ -46,7 +46,7 @@
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-terser": "^5.1.2",
-    "terser": "^4.4.2",
+    "terser": "^4.8.1",
     "vm2": "^3.8.4",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
