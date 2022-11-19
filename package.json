@@ -49,7 +49,7 @@
     "terser": "^4.4.2",
     "vm2": "^3.8.4",
     "webpack": "^4.41.2",
-    "webpack-cli": "^3.3.10",
+    "webpack-cli": "^3.3.12",
     "webpack-merge": "^4.2.2"
   },
   "dependencies": {
